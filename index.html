@@ -193,6 +193,7 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border: none; b
 /* ============ footer ============ */
 footer { text-align: center; font-family: var(--mono); font-size: 12px; line-height: 1.8; color: var(--ink-faint); }
 footer a { color: var(--ink-dim); }
+#glowCount b { color: var(--aqua); font-weight: 500; }
 
 @media (max-width: 900px) {
   .notes { grid-template-columns: 1fr; }
@@ -333,7 +334,11 @@ footer a { color: var(--ink-dim); }
   </div>
 </section>
 
-<footer>Your images never leave this browser — no uploads, no accounts, no cookies.<br>Anonymous counts only: <a href="/api/stats">how many times it has been used</a>.</footer>
+<footer>
+  <div>Your image never leaves this browser — no uploads, no accounts, no cookies.</div>
+  <div id="glowLine" hidden><span id="glowCount"></span></div>
+  <div><a href="https://github.com/billums123/overglow" target="_blank" rel="noopener noreferrer">source on GitHub</a></div>
+</footer>
 
 </div>
 <script>
@@ -1365,6 +1370,41 @@ function drawDemoLogo() {
   return c;
 }
 
+/* ============ footer count ============ */
+/* Fetched once per load, then nudged locally. Without the nudge a visitor who
+   uploads sees the number sit still: the value is 60s edge-cached and KV is
+   eventually consistent, so a re-fetch would usually return the stale figure
+   anyway. Their own upload did count, so showing it immediately is accurate,
+   not optimistic fiction. */
+let glowN = null;
+
+function renderGlow() {
+  if (glowN === null) return;
+  $('glowCount').innerHTML = glowN === 0
+    ? 'no logos overglown yet \u2014 be the first'
+    : '<b>' + glowN.toLocaleString() + '</b> ' + (glowN === 1 ? 'logo' : 'logos') + ' overglown so far';
+  $('glowLine').hidden = false;
+}
+
+async function showGlowCount() {
+  if (location.protocol === 'file:') return;
+  try {
+    const r = await fetch('/api/total');
+    if (!r.ok) return;
+    const { n } = await r.json();
+    if (typeof n !== 'number') return;
+    glowN = n;
+    renderGlow();
+  } catch (e) { /* leave it hidden */ }
+}
+
+/* Called when this visitor's own image lands. */
+function bumpGlowCount() {
+  if (glowN === null) return;   /* never invent a number we could not load */
+  glowN += 1;
+  renderGlow();
+}
+
 /* ============ anonymous counter ============ */
 /* Sends one allowlisted word, nothing else. Never image data, which stays in
    this browser. Silently does nothing when opened as a local file. */
@@ -1387,6 +1427,8 @@ drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add(
 drop.addEventListener('dragleave', () => drop.classList.remove('over'));
 drop.addEventListener('drop', e => { e.preventDefault(); drop.classList.remove('over'); if (e.dataTransfer.files[0]) load(e.dataTransfer.files[0]); });
 fileInput.addEventListener('change', () => { if (fileInput.files[0]) load(fileInput.files[0]); });
+
+showGlowCount();
 
 $('demoTry').addEventListener('click', async e => {
   e.stopPropagation();
@@ -1411,6 +1453,7 @@ function load(file) {
     ctx.drawImage(img, 0, 0, w, h);
     openStudio();
     count('upload');
+    bumpGlowCount();
     URL.revokeObjectURL(img.src);
   };
   img.src = URL.createObjectURL(file);

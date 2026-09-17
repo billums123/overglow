@@ -3,42 +3,37 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{width:1200px;height:630px;overflow:hidden;background:#0B0B0C;
-  font-family:'Space Grotesk',Helvetica,sans-serif;-webkit-font-smoothing:antialiased;position:relative}
+body{width:1200px;height:630px;overflow:hidden;background:#000;position:relative;
+  font-family:'Space Grotesk',Helvetica,sans-serif;-webkit-font-smoothing:antialiased}
+/* faint brand wash behind everything */
 .bg{position:absolute;inset:0;
-  background:radial-gradient(780px 560px at 84% 12%, rgba(61,232,212,.20), transparent 66%),
-             radial-gradient(680px 520px at 8% 94%, rgba(255,45,149,.18), transparent 64%)}
-.inner{position:relative;height:100%;padding:58px 68px;display:flex;flex-direction:column;justify-content:space-between}
-.brand{display:flex;align-items:center;gap:14px}
-.mark{width:52px;height:52px;border-radius:15px;background:#3DE8D4;display:flex;align-items:center;justify-content:center;
-  box-shadow:0 0 34px rgba(61,232,212,.55)}
-.mark i{width:17px;height:17px;border-radius:50%;background:#0B0B0C;display:block}
-.word{color:#F2F2EF;font-weight:700;font-size:30px;letter-spacing:-.02em}
-.badge{border:1px solid #3A3A3C;color:#9A9A96;font-family:'DM Mono',monospace;font-size:14px;padding:7px 14px;border-radius:999px}
-h1{color:#F2F2EF;font-weight:700;font-size:118px;line-height:.88;letter-spacing:-.05em}
-h1 .glow{color:#fff;text-shadow:0 0 18px rgba(255,255,255,.95),0 0 66px rgba(61,232,212,.7)}
-p.sub{margin-top:26px;color:#B8B8B3;font-size:26px;line-height:1.45;max-width:860px}
+  background:radial-gradient(700px 500px at 88% 8%, rgba(61,232,212,.10), transparent 68%),
+             radial-gradient(620px 480px at 6% 96%, rgba(255,45,149,.10), transparent 66%)}
+/* The wordmark is glow-on-black, so `screen` drops its background and keeps the
+   light. That avoids a visible rectangle edge against the card. */
+/* Wider than the card on purpose: the source PNG's background is not pure
+   black, so `screen` leaves a faint lift with hard edges. Bleeding it past the
+   frame puts those edges off-canvas. */
+.mark{position:absolute;left:50%;top:41%;transform:translate(-50%,-50%);
+  width:1290px;mix-blend-mode:screen;display:block}
+.inner{position:relative;height:100%;padding:52px 64px;display:flex;flex-direction:column;justify-content:space-between}
+p.sub{position:absolute;left:0;right:0;top:63%;text-align:center;
+  color:#B8B8B3;font-size:27px;line-height:1.4;letter-spacing:-.01em}
 p.sub strong{color:#3DE8D4;font-weight:500}
-.foot{display:flex;align-items:center;justify-content:space-between}
-.url{color:#F2F2EF;font-family:'DM Mono',monospace;font-size:22px}
+.foot{margin-top:auto;display:flex;align-items:center;justify-content:space-between}
+.url{color:#F2F2EF;font-family:'DM Mono',monospace;font-size:23px}
 .tags{display:flex;gap:10px}
 .tag{font-family:'DM Mono',monospace;font-size:17px;padding:9px 18px;border-radius:999px}
 .t1{border:1px solid #3DE8D4;color:#3DE8D4}
 .t2{border:1px solid #FF2D95;color:#FF2D95}
 </style></head><body>
 <div class="bg"></div>
+<img class="mark" src="wordmark-glow.png" alt="overglow">
+<p class="sub">Give any logo a real <strong>Rec.2100 PQ</strong> HDR glow.</p>
 <div class="inner">
-  <div class="brand">
-    <div class="mark"><i></i></div>
-    <span class="word">overglow</span>
-    <span class="badge">in-browser</span>
-  </div>
-  <div>
-    <h1>Whiter than<br><span class="glow">white.</span></h1>
-    <p class="sub">Give any logo a real <strong>Rec.2100 PQ</strong> HDR glow.</p>
-  </div>
   <div class="foot">
     <div class="url">overglow.hestermani.com</div>
     <div class="tags"><div class="tag t1">HDR</div><div class="tag t2">No upload</div></div>
   </div>
-</div></body></html>
+</div>
+</body></html>
