@@ -4,7 +4,7 @@
 
 → **[overglow.hestermani.com](https://overglow.hestermani.com)**
 
-![overglow](og.png)
+![overglow](og-6.jpg)
 
 ---
 
