@@ -17,14 +17,14 @@
 <meta property="og:url" content="https://overglow.hestermani.com/">
 <meta property="og:title" content="Give any logo a real HDR glow">
 <meta property="og:description" content="Make your logo glow brighter than white. Overglow re-encodes any image as a JPEG with a Rec.2100 PQ HDR profile, so its whites outshine your screen's normal white. Your image never leaves your browser.">
-<meta property="og:image" content="https://overglow.hestermani.com/og-8.jpg">
+<meta property="og:image" content="https://overglow.hestermani.com/og-10.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="The word overglow glowing in white and aqua on a near-black field.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Give any logo a real HDR glow">
 <meta name="twitter:description" content="Make your logo glow brighter than white. Overglow re-encodes any image as a JPEG with a Rec.2100 PQ HDR profile, so its whites outshine your screen's normal white. Your image never leaves your browser.">
-<meta name="twitter:image" content="https://overglow.hestermani.com/og-8.jpg">
+<meta name="twitter:image" content="https://overglow.hestermani.com/og-10.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -40,7 +40,10 @@
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html { color-scheme: dark; scroll-behavior: smooth; }
 body {
-  background: var(--ground); color: var(--ink);
+  /* Pure black rather than the --ground token. The PQ masthead's background
+     measures rgb(0-2), and any mismatch shows as a rectangle around it. The
+     difference from #0B0B0C is about 4% and invisible everywhere else. */
+  background: #000; color: var(--ink);
   font-family: var(--sans); font-size: 17px; line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
@@ -51,8 +54,18 @@ body {
 a { color: var(--aqua); }
 
 /* ============ header ============ */
-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-.brand { display: flex; align-items: center; gap: 4px; }
+/* The wordmark's bloom needs size to read at all, so it runs as a centred
+   masthead rather than a small lockup in the corner. */
+header { position: relative; display: flex; justify-content: center; margin-bottom: -28px; }
+.brand { flex-direction: column; }
+/* The PQ file is the tool's own output, so on an HDR display the site's
+   masthead does the thing the site describes. Both crops are identical, so the
+   layout cannot shift between them.
+
+   Served on every HDR display, phones included — that is where most visitors
+   arrive, and it is the whole point of the page. */
+.brand picture { display: block; }
+.brand { display: flex; align-items: center; gap: 10px; }
 /* Both are Rec.2100 PQ files produced by the tool itself, so on an HDR display
    the site's own logo does the thing the site describes.
 
@@ -77,15 +90,21 @@ header { display: flex; align-items: center; justify-content: space-between; gap
    independently and intersecting them leaves the letters untouched while the
    PQ-lifted background falls away instead of ending in a hard rectangle. */
 .brand .wordimg {
-  height: 50px; width: auto; display: block; margin-left: -8px;
-  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 7%, #000 93%, transparent 100%),
-                      linear-gradient(to bottom, transparent 0, #000 14%, #000 86%, transparent 100%);
+  width: min(500px, 84vw); height: auto; display: block;
+  mix-blend-mode: screen;
+  /* A mild contrast lifts the glow without the clipping that 1.4 caused, and a
+     four-sided fade removes the rectangle screen leaves behind. An ellipse
+     would clip a wide wordmark at both ends, so the edges fade independently. */
+  filter: contrast(1.14);
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 5%, #000 95%, transparent 100%),
+                      linear-gradient(to bottom, transparent 0, #000 9%, #000 91%, transparent 100%);
   -webkit-mask-composite: source-in;
-          mask-image: linear-gradient(to right, transparent 0, #000 7%, #000 93%, transparent 100%),
-                      linear-gradient(to bottom, transparent 0, #000 14%, #000 86%, transparent 100%);
+          mask-image: linear-gradient(to right, transparent 0, #000 5%, #000 95%, transparent 100%),
+                      linear-gradient(to bottom, transparent 0, #000 9%, #000 91%, transparent 100%);
           mask-composite: intersect;
 }
 #hdrBadge {
+  position: absolute; top: 4px; right: 0;
   display: flex; align-items: center; gap: 8px; white-space: nowrap;
   border: 1px solid var(--hairline-strong); color: var(--ink-dim);
   font-family: var(--mono); font-size: 12px; padding: 8px 15px; border-radius: 999px;
@@ -104,6 +123,48 @@ header { display: flex; align-items: center; justify-content: space-between; gap
 }
 h1 { font-weight: 700; font-size: clamp(44px, 13vw, 108px); line-height: .9; letter-spacing: -.05em; }
 h1 .glow { color: #fff; text-shadow: 0 0 16px rgba(255,255,255,.9), 0 0 60px rgba(61,232,212,.65); }
+/* That glow is simulated. On an HDR display the logo above is genuinely
+   brighter than white, and a fake one beside it only invites the comparison —
+   so drop the wide aqua bloom there and keep a tight halo for emphasis. SDR
+   visitors keep the full effect, since it is the only hint of it they get. */
+@media (dynamic-range: high) {
+  /* No compositing on the PQ file — a blend, filter or mask would force SDR
+     compositing and flatten the HDR. None is needed: this asset was produced
+     from a source whose black point had been corrected, so its background
+     measures rgb(1,1,1), darker than the page, and simply disappears into it.
+     The earlier version came from a source at rgb(5,5,7); PQ's curve is steep
+     near black, so that became rgb(23,22,27) and read as a bright rectangle. */
+  .brand .wordimg {
+    /* No filter or blend: either forces SDR compositing and flattens the HDR.
+
+       A mask is different — it only decides which pixels are painted. The PQ
+       file's background is dithered 0-11 rather than a flat zero, which is
+       invisible on a backlit desktop panel and obvious on an OLED phone, where
+       pure black is pixels off. Fading the edges out means there is no boundary
+       to see; the glow sits well inside the faded region and is untouched. */
+    filter: none;
+    mix-blend-mode: normal;
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 16%, #000 84%, transparent 100%),
+                        linear-gradient(to bottom, transparent 0, #000 20%, #000 80%, transparent 100%);
+    -webkit-mask-composite: source-in;
+            mask-image: linear-gradient(to right, transparent 0, #000 16%, #000 84%, transparent 100%),
+                        linear-gradient(to bottom, transparent 0, #000 20%, #000 80%, transparent 100%);
+            mask-composite: intersect;
+  }
+  /* The PQ asset's background measures rgb(0-2) against the page's rgb(11,11,12),
+     so it now reads as a dark box rather than a bright one. Rather than shift the
+     page's ground colour globally, a black plate sits behind it and dissolves
+     into the page, so there is no edge to see. SDR does not get this: there the
+     asset is screen-blended and a dark halo would be visible. */
+  /* Nothing needed: the page background is pure black, which is what this
+     asset's own background measures, so its edges have nothing to reveal. */
+
+  /* No halo at all here. Any blur makes this word read as a different type
+     treatment — fuzzier and visually fatter than the crisp words beside it.
+     Pure white against the headline's off-white carries the emphasis on its
+     own, and both stay equally sharp. */
+  h1 .glow { text-shadow: none; }
+}
 .hero p { max-width: 700px; font-size: 21px; line-height: 1.5; color: var(--ink-muted); text-wrap: pretty; }
 .hero p strong { color: var(--aqua); font-weight: 500; }
 
@@ -239,9 +300,10 @@ footer a { color: var(--ink-dim); }
   }
   /* Stack and centre both header rows. Wrapping alone left the status pill
      stranded at the left edge, reading like a mistake rather than a choice. */
-  header { flex-direction: column; align-items: center; gap: 12px; }
+  header { flex-direction: column; align-items: center; gap: 14px; }
   .brand .markimg { width: 38px; height: 38px; }
-  .brand .wordimg { height: 42px; }
+  #hdrBadge { position: static; }
+  .brand .wordimg { width: 88vw; }
   .hero { padding: 12px 0 0; gap: 18px; }
   .hero p { font-size: 17px; }
   .hero .chip { padding: 9px 16px; }
@@ -276,13 +338,9 @@ footer a { color: var(--ink-dim); }
 
 <header>
   <div class="brand">
-    <picture class="p-mark">
-      <source srcset="assets/mark-hdr.jpg" media="(dynamic-range: high)">
-      <img class="markimg" src="assets/mark-sdr.jpg" alt="" width="860" height="860">
-    </picture>
     <picture class="p-word">
       <source srcset="assets/wordmark-hdr.jpg" media="(dynamic-range: high)">
-      <img class="wordimg" src="assets/wordmark-sdr.jpg" alt="overglow" width="1465" height="505">
+      <img class="wordimg" src="assets/wordmark-sdr.jpg" alt="overglow" width="1672" height="941">
     </picture>
   </div>
   <div id="hdrBadge">checking display…</div>
