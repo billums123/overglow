@@ -1,19 +1,12 @@
 <!doctype html><html><head><meta charset="utf-8">
 <style>
-/* The source wordmark is 1500x540. Rendering the card at 1x and sizing the
-   image to 1100px means it is always DOWNSCALED, never stretched — which is
-   what went wrong before: a 2x card forced this art past its pixel count. */
-*{margin:0;padding:0;box-sizing:border-box}
-body{width:1200px;height:630px;overflow:hidden;background:#000;position:relative}
-.bg{position:absolute;inset:0;
-  background:radial-gradient(760px 540px at 86% 10%, rgba(61,232,212,.12), transparent 68%),
-             radial-gradient(660px 500px at 8% 94%, rgba(255,45,149,.11), transparent 66%)}
-.mark{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
-  width:1100px;display:block;mix-blend-mode:screen;
-  /* its background is near-black rather than black, so screen leaves a faint
-     lifted rectangle; contrast crushes that back down */
-  filter:contrast(1.32) brightness(1.03)}
+/* The source is a finished 1672x941 artwork already on black. Nothing is
+   composited over it, no blend mode and no filter — both were degrading the
+   glow gradient. It simply fills the frame, downscaled from 1672 to 1200 so it
+   is never stretched. */
+*{margin:0;padding:0}
+body{width:1200px;height:630px;overflow:hidden;background:#000}
+img{width:100%;height:100%;object-fit:cover;display:block}
 </style></head><body>
-<div class="bg"></div>
-<img class="mark" src="wordmark-card.png" alt="overglow">
+<img src="wordmark-card.png" alt="overglow">
 </body></html>

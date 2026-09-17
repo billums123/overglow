@@ -17,14 +17,14 @@
 <meta property="og:url" content="https://overglow.hestermani.com/">
 <meta property="og:title" content="Give any logo a real HDR glow">
 <meta property="og:description" content="Make your logo glow brighter than white. Overglow re-encodes any image as a JPEG with a Rec.2100 PQ HDR profile, so its whites outshine your screen's normal white. Your image never leaves your browser.">
-<meta property="og:image" content="https://overglow.hestermani.com/og-6.jpg">
+<meta property="og:image" content="https://overglow.hestermani.com/og-8.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="The word overglow glowing in white and aqua on a near-black field.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Give any logo a real HDR glow">
 <meta name="twitter:description" content="Make your logo glow brighter than white. Overglow re-encodes any image as a JPEG with a Rec.2100 PQ HDR profile, so its whites outshine your screen's normal white. Your image never leaves your browser.">
-<meta name="twitter:image" content="https://overglow.hestermani.com/og-6.jpg">
+<meta name="twitter:image" content="https://overglow.hestermani.com/og-8.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -1424,6 +1424,20 @@ function drawDemoLogo() {
    not optimistic fiction. */
 let glowN = null;
 
+/* /api/total is edge-cached for 60s and KV is eventually consistent on top of
+   that, so a refresh shortly after uploading can return a value from before it
+   landed — and with the local +1 the number appears to go backwards. Remember
+   the highest figure this browser has seen and never render below it. This
+   invents nothing: it declines to show a number we already know is stale. */
+const GLOW_FLOOR_KEY = 'overglow:seen';
+function glowFloor() {
+  try { return parseInt(localStorage.getItem(GLOW_FLOOR_KEY) || '0', 10) || 0; }
+  catch (e) { return 0; }
+}
+function setGlowFloor(n) {
+  try { localStorage.setItem(GLOW_FLOOR_KEY, String(n)); } catch (e) { /* private mode */ }
+}
+
 function renderGlow() {
   if (glowN === null) return;
   $('glowCount').innerHTML = glowN === 0
@@ -1439,7 +1453,8 @@ async function showGlowCount() {
     if (!r.ok) return;
     const { n } = await r.json();
     if (typeof n !== 'number') return;
-    glowN = n;
+    glowN = Math.max(n, glowFloor());
+    setGlowFloor(glowN);
     renderGlow();
   } catch (e) { /* leave it hidden */ }
 }
@@ -1448,6 +1463,7 @@ async function showGlowCount() {
 function bumpGlowCount() {
   if (glowN === null) return;   /* never invent a number we could not load */
   glowN += 1;
+  setGlowFloor(glowN);
   renderGlow();
 }
 
