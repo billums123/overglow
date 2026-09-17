@@ -1,5 +1,8 @@
 {
   "name": "overglow",
   "compatibility_date": "2026-09-17",
-  "pages_build_output_dir": "dist"
+  "pages_build_output_dir": "dist",
+  "kv_namespaces": [
+    { "binding": "COUNTERS", "id": "c6548485fc8a4967a1753fdd84c9d226" }
+  ]
 }

@@ -330,7 +330,7 @@ footer a { color: var(--gray-500); }
   </div>
 </section>
 
-<footer>No uploads, no accounts, no tracking — everything stays on your machine.</footer>
+<footer>Your images never leave this browser — no uploads, no accounts, no cookies.<br>Anonymous counts only: <a href="/api/stats">how many times it has been used</a>.</footer>
 
 </div>
 
@@ -1298,6 +1298,17 @@ function drawDemoLogo() {
   return c;
 }
 
+/* ============ anonymous counter ============ */
+/* Sends one allowlisted word, nothing else. Never image data, which stays in
+   this browser. Silently does nothing when opened as a local file. */
+function count(event) {
+  try {
+    if (location.protocol === 'file:') return;
+    navigator.sendBeacon('/api/count',
+      new Blob([JSON.stringify({ event })], { type: 'application/json' }));
+  } catch (e) { /* a missing count must never break the tool */ }
+}
+
 /* ============ main tool ============ */
 let srcCanvas = null, renderTimer = null, currentURL = null, fileBase = 'image';
 let mode = 'hi';
@@ -1313,6 +1324,7 @@ fileInput.addEventListener('change', () => { if (fileInput.files[0]) load(fileIn
 $('demoTry').addEventListener('click', e => {
   e.stopPropagation();
   fileBase = 'demo';
+  count('demo');
   srcCanvas = drawDemoLogo();
   openStudio();
 });
@@ -1330,6 +1342,7 @@ function load(file) {
     ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h);
     ctx.drawImage(img, 0, 0, w, h);
     openStudio();
+    count('upload');
     URL.revokeObjectURL(img.src);
   };
   img.src = URL.createObjectURL(file);
@@ -1381,6 +1394,7 @@ $('download').addEventListener('click', e => {
     a.download = fileBase + '-overglow-' + $('nits').value + 'nit.jpg';
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 5000);
+    count('export');
     $('busy').textContent = '';
   }, 30);
 });

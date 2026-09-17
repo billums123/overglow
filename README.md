@@ -59,6 +59,30 @@ lie and the result clips. You need both.
   mushy.
 - Some platforms re-encode uploads and strip the profile. Test before you rely on it.
 
+## What is counted
+
+Three numbers, and nothing else: how many images were opened, how many times the
+demo was tried, and how many files were exported.
+
+The entire request body is one word from an allowlist:
+
+```json
+{"event": "export"}
+```
+
+No IP address, user agent, cookie, referrer, session or identifier is stored, and
+there is no per-event record — only integers that go up. **Your image is never
+sent anywhere**; it is read, processed and written entirely in your browser, and
+counting that an export happened does not involve the file itself.
+
+Counts are public at [`/api/stats`](https://overglow.hestermani.com/api/stats).
+They are approximate: increments are read-modify-write against Cloudflare KV, so
+simultaneous events can overwrite one another. They are a gauge, not an audit
+trail. Keys are sharded because KV allows one write per second per key.
+
+The code is `functions/api/count.js` (write) and `functions/api/stats.js` (read) —
+about 100 lines total, worth reading if you would rather verify than trust.
+
 ## Running it locally
 
 ```bash
@@ -72,9 +96,11 @@ request is a Google Fonts stylesheet. Save the one file and it works offline.
 ## Repo layout
 
 ```
-index.html          the entire tool
-og.png              social preview card
-tools/og-card.html  source for og.png (rendered headless at 1200x630)
+index.html             the entire tool
+og.png                 social preview card
+functions/api/count.js anonymous event counter (Cloudflare Pages Function)
+functions/api/stats.js public aggregate counts
+tools/og-card.html     source for og.png (rendered headless at 1200x630)
 ```
 
 ## Third-party code

@@ -1,6 +1,9 @@
 .DS_Store
-_*
 node_modules/
 dist/
 .wrangler/
 bun.lock
+
+# local scratch (harnesses, DOM dumps) — but not the Pages _headers file
+_*
+!_headers
