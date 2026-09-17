@@ -1,10 +1,99 @@
 # overglow
 
-**Give any logo a real HDR glow — in your browser.**
+**Give any logo a real HDR glow.**
 
 → **[overglow.hestermani.com](https://overglow.hestermani.com)**
 
 ![overglow](og.png)
+
+---
+
+## Run or deploy it with an AI agent
+
+One copyable block covering local run, Cloudflare Pages deploy, and the four
+failure modes that are not in Cloudflare's documentation.
+
+<details>
+<summary><b>Show the setup block</b> &nbsp;—&nbsp; then use GitHub's copy button in its top-right corner</summary>
+
+Paste the block below into Claude Code, Codex, or any agent with shell access.
+It covers running locally and deploying, including the failure modes that cost
+real time the first time around.
+
+```text
+Set up "overglow", a single-page client-side tool that re-encodes an image as a
+JPEG carrying a Rec.2100 PQ HDR profile so its whites render brighter than the
+display's SDR white.
+
+Repo: https://github.com/billums123/overglow
+
+RUN LOCALLY - there is no build step.
+    git clone https://github.com/billums123/overglow
+    cd overglow
+    open index.html          # macOS;  use xdg-open on Linux
+
+index.html is fully self-contained: the ICC profile is embedded as base64 and
+the favicon is an inline SVG data URI. The only network request is a Google
+Fonts stylesheet. The event counter disables itself on file:// URLs.
+
+DEPLOY TO CLOUDFLARE PAGES
+Prereqs: a Cloudflare account, plus bun or node.
+
+1. Authenticate with the minimum useful scopes:
+     bunx wrangler login --scopes account:read user:read pages:write zone:read ssl_certs:write
+
+2. Create the project. Pass --force the FIRST time and never again:
+     bunx wrangler pages project create overglow --production-branch=main --force
+   Without --force, wrangler delegates to the newer Workers-backed path, calls
+   /accounts/<id>/workers/services/overglow and dies with
+   "Authentication error [code: 10000]" unless the token also carries
+   workers:write. --force targets the classic Pages API instead.
+
+3. Deploy. dist/ is the deploy root and contains only index.html, og.png and
+   _headers. Pages Functions are picked up from functions/ automatically.
+     cp index.html og.png _headers dist/
+     bunx wrangler pages deploy dist --project-name=overglow
+
+OPTIONAL - the anonymous event counter
+functions/api/count.js increments integers in a KV namespace bound as COUNTERS.
+functions/api/stats.js reads them back at /api/stats. With no binding the
+counter no-ops silently and the site still works.
+
+     bunx wrangler kv namespace create overglow_counters
+
+If that also returns "Authentication error [code: 10000]", it is the same
+delegation problem and this subcommand has no --force. Create it over the REST
+API instead, then put the returned id into wrangler.jsonc under kv_namespaces
+and redeploy:
+
+     curl -X POST "https://api.cloudflare.com/client/v4/accounts/<ACCOUNT_ID>/storage/kv/namespaces" \
+       -H "Authorization: Bearer <TOKEN>" \
+       -H "Content-Type: application/json" \
+       -d '{"title":"overglow_counters"}'
+
+OPTIONAL - a custom domain
+Attach it by POSTing {"name":"<subdomain>"} to
+/accounts/<ACCOUNT_ID>/pages/projects/overglow/domains
+
+That does NOT create the DNS record, even when the zone lives in the same
+account - only the dashboard flow does. Add a proxied CNAME pointing
+<subdomain> at overglow.pages.dev yourself. Note that wrangler's OAuth exposes
+NO DNS scope at any level, so an agent cannot do this step; it needs the
+dashboard or an API token with Zone:DNS:Edit. Then PATCH the same domains
+endpoint to re-verify, and the status moves pending -> active within a minute.
+
+VERIFY
+     curl -s -o /dev/null -w "%{http_code}\n" https://overglow.pages.dev/
+     curl -s https://overglow.pages.dev/api/stats
+
+Export a file from the running page and confirm the profile survived:
+     sips -g profile out.jpg      # expect: Rec. ITU-R BT.2100 PQ
+```
+
+</details>
+
+---
+
 
 Most "glow" effects are a lie: they paint a soft halo around your logo and hope you
 read it as light. Overglow does something different. It re-encodes your image as a
@@ -13,8 +102,8 @@ instructed to display brighter than your screen's normal white.
 
 On an HDR display, the whites don't look brighter. They *are* brighter.
 
-Everything happens client-side. Nothing is uploaded, there's no account, and there's
-no analytics.
+Everything happens client-side: your image is never uploaded and there's no account.
+Three anonymous integers are counted — see [What is counted](#what-is-counted).
 
 ---
 
